@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบบันทึก RTC & สินค้าทำลาย - Turtle Bakery</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style> body { font-family: 'Sarabun', sans-serif; } </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-12">
+
+  <header class="bg-emerald-600 text-white py-4 px-6 shadow-md mb-6 sticky top-0 z-50">
+    <div class="max-w-xl mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold flex items-center gap-2">🥐 Turtle RTC Manager</h1>
+      <span class="text-xs bg-emerald-700 px-2.5 py-1 rounded-full font-medium">v5.0 Sheets Sync</span>
+    </div>
+  </header>
+
+  <main class="max-w-xl mx-auto px-4 space-y-6">
+
+    <!-- Card 1: ฟอร์มสแกน & บันทึก -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+      <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center justify-between">
+        <span>📍 บันทึกรายการใหม่</span>
+        <input type="date" id="recordDate" class="text-sm font-normal border rounded-lg px-2 py-1 bg-slate-50 focus:ring-2 focus:ring-emerald-500 outline-none">
+      </h2>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">สแกน หรือ พิมพ์รหัสบาร์โค้ด</label>
+        <div class="flex gap-2">
+          <input type="text" id="barcode" placeholder="ยิงบาร์โค้ดที่นี่..." oninput="searchProduct()" 
+            class="w-full text-lg border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <button onclick="toggleCamera()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-medium shrink-0 flex items-center gap-1 transition">
+            📷 กล้อง
+          </button>
+        </div>
+      </div>
+
+      <div id="reader" class="hidden rounded-xl overflow-hidden border border-slate-300"></div>
+
+      <div id="productCard" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3.5">
+        <span class="text-xs text-emerald-600 font-semibold uppercase tracking-wider block">สินค้าที่พบ</span>
+        <span id="prodName" class="text-base font-bold text-emerald-900 leading-snug"></span>
+      </div>
+
+      <!-- เพิ่มสินค้าใหม่ขึ้นคลาวด์ -->
+      <div id="newProductSection" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2">
+        <div class="text-sm font-bold text-amber-800">⚠️ ไม่พบรหัสนี้ในระบบกลาง</div>
+        <input type="text" id="newProdName" placeholder="ระบุชื่อสินค้าใหม่" 
+          class="w-full border border-amber-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+        <button onclick="addNewProduct()" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-sm font-bold shadow-sm transition">
+          ➕ บันทึกสินค้าใหม่กลาง (แชร์ให้ทุกคนเห็น)
+        </button>
+      </div>
+
+      <div id="formSection" class="hidden space-y-3 pt-2">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">ประเภท</label>
+            <select id="rtcType" class="w-full border border-slate-300 rounded-lg p-2.5 bg-slate-50 font-medium focus:ring-2 focus:ring-emerald-500 outline-none">
+              <option value="RTC 30%">RTC 30%</option>
+              <option value="RTC 50%">RTC 50%</option>
+              <option value="ทำลาย">ทำลาย (Damage)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 mb-1">จำนวน (ชิ้น)</label>
+            <input type="number" id="qty" value="1" min="1" 
+              class="w-full border border-slate-300 rounded-lg p-2.5 text-center font-bold text-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+          </div>
+        </div>
+
+        <button onclick="saveData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition">
+          💾 บันทึกรายการลงตาราง
+        </button>
+      </div>
+    </div>
+
+    <!-- Card 2: รายการยิงแล้ว + แก้ไข + ส่งออก -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-slate-900 text-base">📋 รายการที่ยิงแล้ว</h3>
+        <span id="logCount" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-semibold">0 รายการ</span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <button onclick="sendToGoogleSheet()" class="bg-emerald-700 hover:bg-emerald-800 text-white py-2.5 px-1 rounded-xl text-xs font-bold transition">
+          📊 ส่งเข้า Sheet
+        </button>
+        <button onclick="exportCSV()" class="bg-green-600 hover:bg-green-700 text-white py-2.5 px-1 rounded-xl text-xs font-bold transition">
+          📈 ดาวน์โหลด Excel
+        </button>
+        <button onclick="exportPDF()" class="bg-rose-600 hover:bg-rose-700 text-white py-2.5 px-1 rounded-xl text-xs font-bold transition">
+          📄 พิมพ์ PDF
+        </button>
+      </div>
+
+      <div class="overflow-x-auto border border-slate-200 rounded-xl">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+            <tr>
+              <th class="p-2.5">สินค้า / ประเภท</th>
+              <th class="p-2.5 text-center w-20">จำนวน</th>
+              <th class="p-2.5 text-center w-12">ลบ</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody" class="divide-y divide-slate-100">
+            <tr><td colspan="3" class="p-4 text-center text-slate-400">ยังไม่มีรายการบันทึก</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-end pt-1">
+        <button onclick="clearLogs()" class="text-xs text-rose-500 hover:text-rose-700 font-semibold">
+          🗑️ ล้างประวัติในเครื่อง
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqy4rXD71ZMcyxuUrwke-luoxhmNNgTaNT6repLWxHVfH0W5qfuzTedoLwyu1WTgdsBw/exec";
+
+    document.getElementById("recordDate").value = new Date().toISOString().split('T')[0];
+
+    let defaultDB = {
+      "8859682600563": "เทอร์เทิล ขนมปังไส้กรอกชีส 100g",
+      "20001291": "เทอร์เทิล ขนมปังกระเทียมครีมชีส 80g",
+      "20001359": "เทอร์เทิล ขนมปังไส้กรอกไก่",
+      "20001411": "เทอร์เทิล ฮอตดอก 100g",
+      "8859682600518": "เทอร์เทิล ครัวซองต์เนยสด 45g"
+    };
+
+    let BAKERY_DB = { ...defaultDB };
+    let logs = JSON.parse(localStorage.getItem("rtc_logs") || "[]");
+    let currentProdName = "";
+    let html5QrcodeScanner = null;
+
+    async function loadCloudDatabase() {
+      if (!SCRIPT_URL.includes("script.google.com")) return;
+      try {
+        let res = await fetch(SCRIPT_URL);
+        let cloudDB = await res.json();
+        BAKERY_DB = { ...defaultDB, ...cloudDB };
+      } catch (e) {
+        console.error("Error loading cloud DB", e);
+      }
+    }
+    loadCloudDatabase();
+    renderHistory();
+
+    function searchProduct() {
+      let barcode = document.getElementById("barcode").value.trim();
+      if (!barcode) return resetForm();
+      
+      if (BAKERY_DB[barcode]) {
+        currentProdName = BAKERY_DB[barcode];
+        document.getElementById("prodName").innerText = currentProdName;
+        document.getElementById("productCard").classList.remove("hidden");
+        document.getElementById("formSection").classList.remove("hidden");
+        document.getElementById("newProductSection").classList.add("hidden");
+      } else {
+        document.getElementById("productCard").classList.add("hidden");
+        document.getElementById("formSection").classList.add("hidden");
+        document.getElementById("newProductSection").classList.remove("hidden");
+      }
+    }
+
+    async function addNewProduct() {
+      let barcode = document.getElementById("barcode").value.trim();
+      let name = document.getElementById("newProdName").value.trim();
+      if (!name) return alert("กรุณากรอกชื่อสินค้า");
+
+      BAKERY_DB[barcode] = name;
+
+      if (SCRIPT_URL.includes("script.google.com")) {
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "addProduct", barcode: barcode, name: name })
+        });
+      }
+      alert("บันทึกสินค้าใหม่ลง Google Sheet เรียบร้อยแล้ว!");
+      document.getElementById("newProdName").value = "";
+      searchProduct();
+    }
+
+    function toggleCamera() {
+      let readerDiv = document.getElementById("reader");
+      if (readerDiv.classList.contains("hidden")) {
+        readerDiv.classList.remove("hidden");
+        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 150} });
+        html5QrcodeScanner.render(onScanSuccess);
+      } else {
+        stopCamera();
+      }
+    }
+
+    function onScanSuccess(decodedText) {
+      document.getElementById("barcode").value = decodedText;
+      stopCamera();
+      searchProduct();
+    }
+
+    function stopCamera() {
+      if(html5QrcodeScanner) { html5QrcodeScanner.clear(); }
+      document.getElementById("reader").classList.add("hidden");
+    }
+
+    function saveData() {
+      let barcode = document.getElementById("barcode").value.trim();
+      let rtcType = document.getElementById("rtcType").value;
+      let qty = parseInt(document.getElementById("qty").value);
+      let dateVal = document.getElementById("recordDate").value;
+
+      if (!barcode || !qty || qty < 1) return alert("กรุณาตรวจสอบข้อมูล");
+
+      logs.unshift({
+        id: Date.now(),
+        date: dateVal,
+        time: new Date().toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit' }),
+        barcode: barcode,
+        name: currentProdName,
+        type: rtcType,
+        qty: qty
+      });
+
+      localStorage.setItem("rtc_logs", JSON.stringify(logs));
+      resetForm();
+      renderHistory();
+    }
+
+    function resetForm() {
+      document.getElementById("barcode").value = "";
+      document.getElementById("productCard").classList.add("hidden");
+      document.getElementById("formSection").classList.add("hidden");
+      document.getElementById("newProductSection").classList.add("hidden");
+      document.getElementById("qty").value = "1";
+    }
+
+    function renderHistory() {
+      let tbody = document.getElementById("historyBody");
+      document.getElementById("logCount").innerText = `${logs.length} รายการ`;
+
+      if (logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center text-slate-400">ยังไม่มีรายการบันทึก</td></tr>';
+        return;
+      }
+
+      let html = "";
+      logs.forEach((item) => {
+        let typeBadge = item.type === 'ทำลาย' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700';
+
+        html += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-2.5">
+              <div class="font-bold text-slate-800 leading-tight">${item.name}</div>
+              <div class="text-[10px] text-slate-400 mt-0.5">${item.date} (${item.time}) | ${item.barcode}</div>
+              <span class="inline-block mt-1 text-[10px] px-1.5 py-0.5 rounded font-semibold ${typeBadge}">${item.type}</span>
+            </td>
+            <td class="p-2.5 text-center">
+              <input type="number" min="1" value="${item.qty}" onchange="updateQty(${item.id}, this.value)" 
+                class="w-14 border rounded p-1 text-center font-bold text-slate-800 focus:ring-1 focus:ring-emerald-500 outline-none">
+            </td>
+            <td class="p-2.5 text-center">
+              <button onclick="deleteLog(${item.id})" class="text-rose-500 hover:text-rose-700 p-1 font-bold">✕</button>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    function updateQty(id, newQty) {
+      let parsed = parseInt(newQty);
+      if (isNaN(parsed) || parsed < 1) return;
+      let log = logs.find(l => l.id === id);
+      if (log) {
+        log.qty = parsed;
+        localStorage.setItem("rtc_logs", JSON.stringify(logs));
+        renderHistory();
+      }
+    }
+
+    function deleteLog(id) {
+      if(confirm("ลบรายการนี้ใช่หรือไม่?")) {
+        logs = logs.filter(l => l.id !== id);
+        localStorage.setItem("rtc_logs", JSON.stringify(logs));
+        renderHistory();
+      }
+    }
+
+    function clearLogs() {
+      if (confirm("ล้างประวัติที่บันทึกไว้ในเครื่องใช่หรือไม่?")) {
+        logs = [];
+        localStorage.removeItem("rtc_logs");
+        renderHistory();
+      }
+    }
+
+    async function sendToGoogleSheet() {
+      if (logs.length === 0) return alert("ยังไม่มีข้อมูลส่งออก");
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "saveLog", logs: logs })
+        });
+        alert("ส่งข้อมูลทั้งหมดเข้า Google Sheet เรียบร้อยแล้ว!");
+      } catch (e) {
+        alert("เกิดข้อผิดพลาดในการส่งข้อมูล");
+      }
+    }
+
+    function exportCSV() {
+      if (logs.length === 0) return alert("ยังไม่มีข้อมูลส่งออก");
+      let csvContent = "\uFEFFวันที่,เวลา,รหัสบาร์โค้ด,ชื่อสินค้า,ประเภท,จำนวน\n";
+      logs.forEach(r => {
+        csvContent += `"${r.date}","${r.time}","${r.barcode}","${r.name}","${r.type}","${r.qty}"\n`;
+      });
+      let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      let a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `RTC_Report_${document.getElementById("recordDate").value}.csv`;
+      a.click();
+    }
+
+    function exportPDF() {
+      if (logs.length === 0) return alert("ยังไม่มีข้อมูลส่งออก");
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFont("Sarabun", "normal");
+      doc.text(`รายงานบันทึก RTC & สินค้าทำลาย`, 14, 15);
+      doc.setFontSize(10);
+      doc.text(`วันที่: ${document.getElementById("recordDate").value}`, 14, 22);
+
+      let tableData = logs.map(r => [r.date, r.time, r.barcode, r.name, r.type, r.qty]);
+      doc.autoTable({
+        startY: 28,
+        head: [['วันที่', 'เวลา', 'บาร์โค้ด', 'ชื่อสินค้า', 'ประเภท', 'จำนวน']],
+        body: tableData,
+        styles: { font: "Sarabun", fontSize: 8 },
+        headStyles: { fillColor: [5, 150, 105] }
+      });
+      doc.save(`RTC_Report_${document.getElementById("recordDate").value}.pdf`);
+    }
+  </script>
+</body>
+</html>
