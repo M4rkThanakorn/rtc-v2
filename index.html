@@ -51,13 +51,13 @@
         </div>
         <div>
           <h1 class="text-base font-bold tracking-tight text-slate-100 flex items-center gap-1.5">
-            Turtle RTC <span class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-full font-mono">PRO</span>
+            Turtle RTC <span class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-full font-mono">v9.0</span>
           </h1>
         </div>
       </div>
       <div class="flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot"></span>
-        <span class="text-xs font-semibold text-slate-300">v8.1 Quick Filter</span>
+        <span class="text-xs font-semibold text-slate-300">Auto Scan/Edit</span>
       </div>
     </div>
   </header>
@@ -67,21 +67,21 @@
     <!-- MAIN PAGE -->
     <div id="mainPage" class="space-y-5 transition-all">
 
-      <!-- CARD 1: FORM SCANNER -->
+      <!-- CARD 1: MAIN SCAN & EDIT CARD -->
       <div class="glass-card rounded-3xl p-5 shadow-xl shadow-slate-200/50 space-y-4">
         <div class="flex justify-between items-center border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <i data-lucide="scan-line" class="w-5 h-5 text-emerald-600"></i>
-            <h2 class="text-base font-bold text-slate-900">บันทึกรายการใหม่</h2>
+            <h2 class="text-base font-bold text-slate-900">ยิงบาร์โค้ด / ค้นหารายการ</h2>
           </div>
           <input type="date" id="recordDate" class="text-xs font-medium border border-slate-200 rounded-xl px-2.5 py-1.5 bg-slate-50 text-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none">
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">ยิงบาร์โค้ด / กรอกรหัสสินค้า</label>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">ยิงบาร์โค้ด หรือ พิมพ์ค้นหา</label>
           <div class="flex gap-2">
             <div class="relative flex-1">
-              <input type="text" id="barcode" placeholder="ยิงบาร์โค้ดที่นี่..." oninput="searchProduct()" 
+              <input type="text" id="barcode" placeholder="ยิงบาร์โค้ดที่นี่เพื่อเพิ่มหรือแก้ไข..." oninput="handleScanOrSearch()" 
                 class="w-full text-base font-medium border border-slate-200 rounded-2xl px-4 py-3 bg-white/80 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-inner">
             </div>
             <button onclick="toggleCamera()" class="bg-slate-900 hover:bg-slate-800 active:scale-95 text-white px-4 py-3 rounded-2xl font-semibold shrink-0 flex items-center gap-2 transition shadow-md">
@@ -93,27 +93,57 @@
 
         <div id="reader" class="hidden rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-md"></div>
 
-        <!-- PRODUCT MATCHED CARD -->
+        <!-- STATE 1: EXISTING ITEM FOUND IN LOGS (EDIT MODE) -->
+        <div id="existingEditCard" class="hidden bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-2xl p-4 space-y-3 shadow-sm">
+          <div class="flex justify-between items-center">
+            <span class="text-xs font-bold text-amber-800 flex items-center gap-1">
+              <i data-lucide="edit-3" class="w-4 h-4 text-amber-600"></i> พบรายการที่เคยยิงไว้แล้ว
+            </span>
+            <span id="existingIndexBadge" class="text-[10px] bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-full font-mono font-bold"></span>
+          </div>
+          
+          <div>
+            <div id="existingName" class="text-base font-bold text-slate-800 leading-tight"></div>
+            <div id="existingDetails" class="text-xs text-slate-500 mt-1"></div>
+          </div>
+
+          <div class="flex items-center gap-3 pt-1">
+            <div class="flex-1">
+              <label class="block text-[11px] font-bold text-slate-500 mb-1">แก้ไขจำนวน (ชิ้น)</label>
+              <input type="number" id="existingQtyInput" min="1" class="w-full border border-amber-300 rounded-xl p-2 text-center font-bold text-lg bg-white outline-none focus:ring-2 focus:ring-amber-500">
+            </div>
+            <div class="flex gap-2 self-end">
+              <button onclick="saveEditExisting()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-md flex items-center gap-1">
+                <i data-lucide="check" class="w-4 h-4"></i> บันทึกแก้ไข
+              </button>
+              <button onclick="deleteExistingFromCard()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-3 py-2.5 rounded-xl text-xs transition shadow-md flex items-center gap-1">
+                <i data-lucide="trash-2" class="w-4 h-4"></i> ลบ
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATE 2: PRODUCT MATCHED IN DB (NEW LOG MODE) -->
         <div id="productCard" class="hidden bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl p-4 shadow-sm">
           <div class="flex items-center gap-1.5 text-xs text-emerald-700 font-bold uppercase tracking-wider mb-0.5">
-            <i data-lucide="check-circle-2" class="w-4 h-4"></i> พบรายการสินค้า
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i> พบรายการสินค้า (ยังไม่เคยยิง)
           </div>
           <span id="prodName" class="text-base font-bold text-slate-800 leading-snug block"></span>
         </div>
 
-        <!-- NEW PRODUCT CARD -->
-        <div id="newProductSection" class="hidden bg-amber-50/90 border border-amber-200 rounded-2xl p-4 space-y-3">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-amber-800">
-            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600"></i> ไม่พบรหัสนี้ในระบบ
+        <!-- STATE 3: NEW UNKNOWN PRODUCT -->
+        <div id="newProductSection" class="hidden bg-slate-100 border border-slate-300 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+            <i data-lucide="alert-circle" class="w-4 h-4 text-slate-500"></i> ไม่พบรหัสนี้ในระบบฐานข้อมูล
           </div>
           <input type="text" id="newProdName" placeholder="พิมพ์ชื่อสินค้าใหม่ที่นี่..." 
-            class="w-full border border-amber-300 rounded-xl p-2.5 text-sm bg-white focus:ring-2 focus:ring-amber-500 outline-none">
-          <button onclick="addNewProduct()" class="w-full bg-amber-600 hover:bg-amber-700 active:scale-95 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
-            <i data-lucide="plus" class="w-4 h-4"></i> เพิ่มบันทึกสินค้าใหม่
+            class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+          <button onclick="addNewProduct()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
+            <i data-lucide="plus" class="w-4 h-4"></i> ลงทะเบียนและยิงสินค้า
           </button>
         </div>
 
-        <!-- FORM ACTION -->
+        <!-- FORM ACTION FOR NEW LOG -->
         <div id="formSection" class="hidden space-y-4 pt-1">
           <div class="grid grid-cols-2 gap-3">
             <div>
@@ -133,25 +163,19 @@
 
           <button onclick="saveData()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-98 text-white font-bold py-3.5 rounded-2xl shadow-lg btn-glow transition flex items-center justify-center gap-2">
             <i data-lucide="plus-circle" class="w-5 h-5"></i>
-            <span>บันทึกรายการลงตาราง</span>
+            <span>บันทึกรายการใหม่</span>
           </button>
         </div>
       </div>
 
-      <!-- CARD 2: RECENT LOGS WITH SEARCH -->
+      <!-- CARD 2: RECENT LOGS LIST -->
       <div class="glass-card rounded-3xl p-5 shadow-xl shadow-slate-200/50 space-y-4">
         <div class="flex justify-between items-center border-b border-slate-100 pb-3">
           <div class="flex items-center gap-2">
             <i data-lucide="list-checks" class="w-5 h-5 text-emerald-600"></i>
-            <h3 class="font-bold text-slate-900 text-base">รายการที่ยิงแล้ว</h3>
+            <h3 class="font-bold text-slate-900 text-base">ประวัติที่ยิงแล้วทั้งหมด</h3>
           </div>
           <span id="logCount" class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold">0 รายการ</span>
-        </div>
-
-        <!-- SEARCH BAR FOR HISTORY -->
-        <div class="relative">
-          <input type="text" id="historySearch" placeholder="🔍 ค้นหาในประวัติ (พิมพ์ชื่อ หรือ บาร์โค้ด)..." oninput="renderHistory()" 
-            class="w-full text-xs font-medium border border-slate-200 rounded-xl px-3.5 py-2.5 bg-white/80 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-inner">
         </div>
 
         <button id="btnExport" onclick="exportAndShowSummary()" class="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white py-3.5 rounded-2xl font-bold shadow-lg transition flex items-center justify-center gap-2">
@@ -245,6 +269,7 @@
     let BAKERY_DB = { ...defaultDB };
     let logs = JSON.parse(localStorage.getItem("rtc_logs") || "[]");
     let currentProdName = "";
+    let activeFoundLogId = null;
     let html5QrcodeScanner = null;
 
     lucide.createIcons();
@@ -262,12 +287,39 @@
     loadCloudDatabase();
     renderHistory();
 
-    function searchProduct() {
-      let barcode = document.getElementById("barcode").value.trim();
-      if (!barcode) return resetForm();
-      
-      if (BAKERY_DB[barcode]) {
-        currentProdName = BAKERY_DB[barcode];
+    function handleScanOrSearch() {
+      let query = document.getElementById("barcode").value.trim().toLowerCase();
+      if (!query) return resetForm();
+
+      // 1. Check if item ALREADY EXISTS in active logs
+      let existingLogIndex = logs.findIndex(item => 
+        item.barcode.toLowerCase() === query || item.name.toLowerCase().includes(query)
+      );
+
+      if (existingLogIndex !== -1) {
+        let existingLog = logs[existingLogIndex];
+        activeFoundLogId = existingLog.id;
+
+        document.getElementById("existingEditCard").classList.remove("hidden");
+        document.getElementById("existingIndexBadge").innerText = `รายการที่ ${logs.length - existingLogIndex} จาก ${logs.length}`;
+        document.getElementById("existingName").innerText = existingLog.name;
+        document.getElementById("existingDetails").innerText = `บาร์โค้ด: ${existingLog.barcode} | ประเภท: ${existingLog.type}`;
+        document.getElementById("existingQtyInput").value = existingLog.qty;
+
+        document.getElementById("productCard").classList.add("hidden");
+        document.getElementById("formSection").classList.add("hidden");
+        document.getElementById("newProductSection").classList.add("hidden");
+        return;
+      }
+
+      // 2. If not found in logs, check master BAKERY_DB for new entry
+      document.getElementById("existingEditCard").classList.add("hidden");
+      activeFoundLogId = null;
+
+      let matchedKey = Object.keys(BAKERY_DB).find(k => k.toLowerCase() === query);
+
+      if (matchedKey) {
+        currentProdName = BAKERY_DB[matchedKey];
         document.getElementById("prodName").innerText = currentProdName;
         document.getElementById("productCard").classList.remove("hidden");
         document.getElementById("formSection").classList.remove("hidden");
@@ -276,6 +328,30 @@
         document.getElementById("productCard").classList.add("hidden");
         document.getElementById("formSection").classList.add("hidden");
         document.getElementById("newProductSection").classList.remove("hidden");
+      }
+    }
+
+    function saveEditExisting() {
+      if (!activeFoundLogId) return;
+      let newQty = parseInt(document.getElementById("existingQtyInput").value);
+      if (isNaN(newQty) || newQty < 1) return alert("กรุณาระบุจำนวนให้ถูกต้อง");
+
+      let log = logs.find(l => l.id === activeFoundLogId);
+      if (log) {
+        log.qty = newQty;
+        localStorage.setItem("rtc_logs", JSON.stringify(logs));
+        renderHistory();
+        resetForm();
+      }
+    }
+
+    function deleteExistingFromCard() {
+      if (!activeFoundLogId) return;
+      if (confirm("ต้องการลบรายการนี้ออกจากประวัติใช่หรือไม่?")) {
+        logs = logs.filter(l => l.id !== activeFoundLogId);
+        localStorage.setItem("rtc_logs", JSON.stringify(logs));
+        renderHistory();
+        resetForm();
       }
     }
 
@@ -293,12 +369,25 @@
     function onScanSuccess(decodedText) {
       document.getElementById("barcode").value = decodedText;
       stopCamera();
-      searchProduct();
+      handleScanOrSearch();
     }
 
     function stopCamera() {
       if(html5QrcodeScanner) { html5QrcodeScanner.clear(); }
       document.getElementById("reader").classList.add("hidden");
+    }
+
+    function addNewProduct() {
+      let barcode = document.getElementById("barcode").value.trim();
+      let name = document.getElementById("newProdName").value.trim();
+      if (!barcode || !name) return alert("กรุณากรอกรหัสและชื่อสินค้า");
+
+      BAKERY_DB[barcode] = name;
+      currentProdName = name;
+      document.getElementById("prodName").innerText = name;
+      document.getElementById("newProductSection").classList.add("hidden");
+      document.getElementById("productCard").classList.remove("hidden");
+      document.getElementById("formSection").classList.remove("hidden");
     }
 
     function saveData() {
@@ -314,7 +403,7 @@
         date: dateVal,
         time: new Date().toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit' }),
         barcode: barcode,
-        name: currentProdName,
+        name: currentProdName || BAKERY_DB[barcode] || barcode,
         type: rtcType,
         qty: qty
       });
@@ -326,30 +415,25 @@
 
     function resetForm() {
       document.getElementById("barcode").value = "";
+      document.getElementById("existingEditCard").classList.add("hidden");
       document.getElementById("productCard").classList.add("hidden");
       document.getElementById("formSection").classList.add("hidden");
       document.getElementById("newProductSection").classList.add("hidden");
       document.getElementById("qty").value = "1";
+      activeFoundLogId = null;
     }
 
     function renderHistory() {
       let tbody = document.getElementById("historyBody");
       document.getElementById("logCount").innerText = `${logs.length} รายการ`;
 
-      let query = (document.getElementById("historySearch")?.value || "").trim().toLowerCase();
-
-      let filteredLogs = logs.filter(item => 
-        item.name.toLowerCase().includes(query) || 
-        item.barcode.toLowerCase().includes(query)
-      );
-
-      if (filteredLogs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="p-5 text-center text-slate-400 font-medium">${logs.length === 0 ? 'ยังไม่มีรายการบันทึก' : 'ไม่พบรายการที่ค้นหา'}</td></tr>`;
+      if (logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-5 text-center text-slate-400 font-medium">ยังไม่มีรายการบันทึก</td></tr>`;
         return;
       }
 
       let html = "";
-      filteredLogs.forEach((item) => {
+      logs.forEach((item) => {
         let typeBadge = item.type === 'ทำลาย' ? 'bg-rose-100 text-rose-700 border-rose-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200';
 
         html += `
