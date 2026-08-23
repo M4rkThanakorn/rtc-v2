@@ -6,8 +6,6 @@
   <title>ระบบบันทึก RTC & สินค้าทำลาย - Turtle Bakery</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style> body { font-family: 'Sarabun', sans-serif; } </style>
 </head>
@@ -16,7 +14,7 @@
   <header class="bg-emerald-600 text-white py-4 px-6 shadow-md mb-6 sticky top-0 z-50">
     <div class="max-w-xl mx-auto flex justify-between items-center">
       <h1 class="text-xl font-bold flex items-center gap-2">🥐 Turtle RTC Manager</h1>
-      <span class="text-xs bg-emerald-700 px-2.5 py-1 rounded-full font-medium">v5.0 Sheets Sync</span>
+      <span class="text-xs bg-emerald-700 px-2.5 py-1 rounded-full font-medium">v6.0 Auto-Create Sheet</span>
     </div>
   </header>
 
@@ -47,13 +45,12 @@
         <span id="prodName" class="text-base font-bold text-emerald-900 leading-snug"></span>
       </div>
 
-      <!-- เพิ่มสินค้าใหม่ขึ้นคลาวด์ -->
       <div id="newProductSection" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2">
-        <div class="text-sm font-bold text-amber-800">⚠️ ไม่พบรหัสนี้ในระบบกลาง</div>
+        <div class="text-sm font-bold text-amber-800">⚠️ ไม่พบรหัสนี้ในฐานข้อมูล</div>
         <input type="text" id="newProdName" placeholder="ระบุชื่อสินค้าใหม่" 
           class="w-full border border-amber-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
         <button onclick="addNewProduct()" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-sm font-bold shadow-sm transition">
-          ➕ บันทึกสินค้าใหม่กลาง (แชร์ให้ทุกคนเห็น)
+          ➕ บันทึกสินค้าใหม่
         </button>
       </div>
 
@@ -80,25 +77,34 @@
       </div>
     </div>
 
-    <!-- Card 2: รายการยิงแล้ว + แก้ไข + ส่งออก -->
+    <!-- Card 2: รายการยิงแล้ว + สร้าง Google Sheet ใหม่ -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="font-bold text-slate-900 text-base">📋 รายการที่ยิงแล้ว</h3>
         <span id="logCount" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-semibold">0 รายการ</span>
       </div>
 
-      <div class="grid grid-cols-3 gap-2">
-        <button onclick="sendToGoogleSheet()" class="bg-emerald-700 hover:bg-emerald-800 text-white py-2.5 px-1 rounded-xl text-xs font-bold transition">
-          📊 ส่งเข้า Sheet
-        </button>
-        <button onclick="exportCSV()" class="bg-green-600 hover:bg-green-700 text-white py-2.5 px-1 rounded-xl text-xs font-bold transition">
-          📈 ดาวน์โหลด Excel
-        </button>
-        <button onclick="exportPDF()" class="bg-rose-600 hover:bg-rose-700 text-white py-2.5 px-1 rounded-xl text-xs font-bold transition">
-          📄 พิมพ์ PDF
-        </button>
+      <!-- ปุ่มกดสร้างไฟล์ Sheet ใหม่ -->
+      <button id="btnExport" onclick="sendToGoogleSheet()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-3.5 rounded-xl font-bold shadow-md transition flex items-center justify-center gap-2">
+        <span>🚀 สร้างไฟล์ Google Sheet ใหม่ (ตั้งชื่ออัตโนมัติ)</span>
+      </button>
+
+      <!-- โซนแสดงลิงก์เมื่อสร้างไฟล์สำเร็จ -->
+      <div id="createdSheetZone" class="hidden bg-emerald-50 border border-emerald-300 rounded-xl p-4 space-y-3">
+        <div class="text-xs font-bold text-emerald-800 flex items-center gap-1">
+          ✅ สร้างไฟล์สำเร็จ: <span id="createdFileName" class="underline"></span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="openCreatedSheet()" class="bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm">
+            <span>🟢 เปิดดู Google Sheet</span>
+          </button>
+          <button onclick="copyCreatedLink()" class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm">
+            <span>📋 คัดลอกลิงก์แชร์</span>
+          </button>
+        </div>
       </div>
 
+      <!-- ตารางแสดงรายการ -->
       <div class="overflow-x-auto border border-slate-200 rounded-xl">
         <table class="w-full text-xs text-left">
           <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
@@ -124,7 +130,10 @@
   </main>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqy4rXD71ZMcyxuUrwke-luoxhmNNgTaNT6repLWxHVfH0W5qfuzTedoLwyu1WTgdsBw/exec";
+    // 🔗 ลิงก์ Web App URL อัปเดตล่าสุด
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4Vh7NNHkWSUICE8xjFn5bSYaIFAqo-mxNXVxuAxeqQcFRnvGTh_l-_V7AE8lL02fnIA/exec";
+    
+    let latestSheetUrl = "";
 
     document.getElementById("recordDate").value = new Date().toISOString().split('T')[0];
 
@@ -169,24 +178,6 @@
         document.getElementById("formSection").classList.add("hidden");
         document.getElementById("newProductSection").classList.remove("hidden");
       }
-    }
-
-    async function addNewProduct() {
-      let barcode = document.getElementById("barcode").value.trim();
-      let name = document.getElementById("newProdName").value.trim();
-      if (!name) return alert("กรุณากรอกชื่อสินค้า");
-
-      BAKERY_DB[barcode] = name;
-
-      if (SCRIPT_URL.includes("script.google.com")) {
-        await fetch(SCRIPT_URL, {
-          method: "POST",
-          body: JSON.stringify({ action: "addProduct", barcode: barcode, name: name })
-        });
-      }
-      alert("บันทึกสินค้าใหม่ลง Google Sheet เรียบร้อยแล้ว!");
-      document.getElementById("newProdName").value = "";
-      searchProduct();
     }
 
     function toggleCamera() {
@@ -238,7 +229,7 @@
       document.getElementById("barcode").value = "";
       document.getElementById("productCard").classList.add("hidden");
       document.getElementById("formSection").classList.add("hidden");
-      document.getElementById("newProductSection").classList.add("hidden");
+      document.getElementById("newProductSection").classList.remove("hidden");
       document.getElementById("qty").value = "1";
     }
 
@@ -303,50 +294,42 @@
     }
 
     async function sendToGoogleSheet() {
-      if (logs.length === 0) return alert("ยังไม่มีข้อมูลส่งออก");
+      if (logs.length === 0) return alert("ยังไม่มีข้อมูลสำหรับส่งออก");
+
+      let btn = document.getElementById("btnExport");
+      btn.innerText = "⏳ กำลังสร้างไฟล์ Google Sheet...";
+      btn.disabled = true;
 
       try {
-        await fetch(SCRIPT_URL, {
+        let res = await fetch(SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify({ action: "saveLog", logs: logs })
         });
-        alert("ส่งข้อมูลทั้งหมดเข้า Google Sheet เรียบร้อยแล้ว!");
+        
+        let result = await res.json();
+        latestSheetUrl = result.sheetUrl;
+
+        document.getElementById("createdFileName").innerText = result.fileName;
+        document.getElementById("createdSheetZone").classList.remove("hidden");
+
+        alert(`สร้างไฟล์ ${result.fileName} สำเร็จแล้ว!`);
       } catch (e) {
-        alert("เกิดข้อผิดพลาดในการส่งข้อมูล");
+        alert("เกิดข้อผิดพลาดในการสร้างไฟล์");
+      } finally {
+        btn.innerText = "🚀 สร้างไฟล์ Google Sheet ใหม่ (ตั้งชื่ออัตโนมัติ)";
+        btn.disabled = false;
       }
     }
 
-    function exportCSV() {
-      if (logs.length === 0) return alert("ยังไม่มีข้อมูลส่งออก");
-      let csvContent = "\uFEFFวันที่,เวลา,รหัสบาร์โค้ด,ชื่อสินค้า,ประเภท,จำนวน\n";
-      logs.forEach(r => {
-        csvContent += `"${r.date}","${r.time}","${r.barcode}","${r.name}","${r.type}","${r.qty}"\n`;
-      });
-      let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      let a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `RTC_Report_${document.getElementById("recordDate").value}.csv`;
-      a.click();
+    function openCreatedSheet() {
+      if (latestSheetUrl) window.open(latestSheetUrl, '_blank');
     }
 
-    function exportPDF() {
-      if (logs.length === 0) return alert("ยังไม่มีข้อมูลส่งออก");
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFont("Sarabun", "normal");
-      doc.text(`รายงานบันทึก RTC & สินค้าทำลาย`, 14, 15);
-      doc.setFontSize(10);
-      doc.text(`วันที่: ${document.getElementById("recordDate").value}`, 14, 22);
-
-      let tableData = logs.map(r => [r.date, r.time, r.barcode, r.name, r.type, r.qty]);
-      doc.autoTable({
-        startY: 28,
-        head: [['วันที่', 'เวลา', 'บาร์โค้ด', 'ชื่อสินค้า', 'ประเภท', 'จำนวน']],
-        body: tableData,
-        styles: { font: "Sarabun", fontSize: 8 },
-        headStyles: { fillColor: [5, 150, 105] }
-      });
-      doc.save(`RTC_Report_${document.getElementById("recordDate").value}.pdf`);
+    function copyCreatedLink() {
+      if (latestSheetUrl) {
+        navigator.clipboard.writeText(latestSheetUrl);
+        alert("คัดลอกลิงก์ Google Sheet ใหม่เรียบร้อยแล้ว!");
+      }
     }
   </script>
 </body>
