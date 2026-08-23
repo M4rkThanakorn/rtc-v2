@@ -2,8 +2,8 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Turtle RTC & Damage Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Turtle RTC Manager Pro</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- HTML5 QR Code Scanner -->
@@ -11,243 +11,281 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
   <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    input, select, textarea {
+      user-select: text;
+    }
     body {
       font-family: 'Sarabun', 'Plus Jakarta Sans', sans-serif;
-      background: radial-gradient(circle at top left, #f0fdf4, #e0f2fe, #f8fafc);
+      background-color: #0f172a;
+      color: #f8fafc;
     }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.6);
+    .app-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .btn-glow {
-      box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.39);
+    .app-card-inner {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
-    .btn-glow:hover {
-      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.55);
+    .btn-emerald-glow {
+      box-shadow: 0 4px 20px -2px rgba(16, 185, 129, 0.4);
     }
-    .pulse-dot {
-      animation: pulse 2s infinite;
+    .btn-emerald-glow:active {
+      transform: scale(0.97);
     }
-    @keyframes pulse {
+    .btn-dark-active:active {
+      transform: scale(0.97);
+    }
+    .pulse-online {
+      animation: pulse-ring 2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    }
+    @keyframes pulse-ring {
       0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
       70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
+    /* Custom Scrollbar for App Feel */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 4px;
+    }
   </style>
 </head>
-<body class="text-slate-800 min-h-screen pb-16">
+<body class="min-h-screen pb-10 flex flex-col items-center">
 
-  <!-- Header Section -->
-  <header class="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 text-white py-3.5 px-5 transition-all">
-    <div class="max-w-xl mx-auto flex justify-between items-center">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-900 font-black shadow-lg">
+  <!-- TOP APP BAR / HEADER -->
+  <header class="w-full max-w-md sticky top-0 z-50 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800/80 px-4 py-3">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-slate-950 font-black text-lg shadow-md shadow-emerald-900/30">
           🐢
         </div>
         <div>
-          <h1 class="text-base font-bold tracking-tight text-slate-100 flex items-center gap-1.5">
-            Turtle RTC <span class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded-full font-mono">v9.0</span>
+          <h1 class="text-sm font-black tracking-tight text-white flex items-center gap-1.5">
+            TURTLE RTC <span class="text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.2 rounded-full font-mono font-bold">v10.0</span>
           </h1>
+          <p class="text-[10px] text-slate-400 font-medium">ระบบยิงบันทึกสินค้าเรียงลำดับ</p>
         </div>
       </div>
+      
       <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot"></span>
-        <span class="text-xs font-semibold text-slate-300">Auto Scan/Edit</span>
+        <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-online"></span>
+        <span class="text-[11px] font-bold text-slate-300 font-mono">ONLINE</span>
       </div>
     </div>
   </header>
 
-  <main class="max-w-xl mx-auto px-4 pt-5 space-y-5">
+  <!-- MAIN CONTAINER -->
+  <main class="w-full max-w-md px-3 pt-4 space-y-4 flex-1">
 
-    <!-- MAIN PAGE -->
-    <div id="mainPage" class="space-y-5 transition-all">
+    <!-- MAIN DASHBOARD PAGE -->
+    <div id="mainPage" class="space-y-4 transition-all">
 
-      <!-- CARD 1: MAIN SCAN & EDIT CARD -->
-      <div class="glass-card rounded-3xl p-5 shadow-xl shadow-slate-200/50 space-y-4">
-        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+      <!-- SECTION 1: SCANNER & SEARCH CARD -->
+      <div class="app-card rounded-3xl p-4 shadow-2xl space-y-3">
+        
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
           <div class="flex items-center gap-2">
-            <i data-lucide="scan-line" class="w-5 h-5 text-emerald-600"></i>
-            <h2 class="text-base font-bold text-slate-900">ยิงบาร์โค้ด / ค้นหารายการ</h2>
+            <div class="p-1.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+              <i data-lucide="scan-barcode" class="w-4 h-4"></i>
+            </div>
+            <span class="text-xs font-bold text-slate-200 uppercase tracking-wide">สแกน / ค้นหารายการ</span>
           </div>
-          <input type="date" id="recordDate" class="text-xs font-medium border border-slate-200 rounded-xl px-2.5 py-1.5 bg-slate-50 text-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none">
+          <input type="date" id="recordDate" class="text-xs font-semibold bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1 text-slate-300 outline-none focus:border-emerald-500 transition">
         </div>
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">ยิงบาร์โค้ด หรือ พิมพ์ค้นหา</label>
+        <!-- INPUT FIELD & CAMERA BUTTON -->
+        <div class="space-y-1.5">
+          <label class="text-[11px] font-semibold text-slate-400">บาร์โค้ด หรือ พิมพ์ชื่อสินค้า</label>
           <div class="flex gap-2">
             <div class="relative flex-1">
-              <input type="text" id="barcode" placeholder="ยิงบาร์โค้ดที่นี่เพื่อเพิ่มหรือแก้ไข..." oninput="handleScanOrSearch()" 
-                class="w-full text-base font-medium border border-slate-200 rounded-2xl px-4 py-3 bg-white/80 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all shadow-inner">
+              <input type="text" id="barcode" placeholder="ยิงบาร์โค้ด หรือ ค้นหาในประวัติ..." oninput="handleScanOrSearch()" 
+                class="w-full text-sm font-semibold border border-slate-700/80 rounded-2xl px-3.5 py-3 bg-slate-950/80 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition shadow-inner">
             </div>
-            <button onclick="toggleCamera()" class="bg-slate-900 hover:bg-slate-800 active:scale-95 text-white px-4 py-3 rounded-2xl font-semibold shrink-0 flex items-center gap-2 transition shadow-md">
-              <i data-lucide="camera" class="w-5 h-5 text-emerald-400"></i>
-              <span class="text-xs">กล้อง</span>
+            <button onclick="toggleCamera()" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 px-3.5 py-3 rounded-2xl font-bold shrink-0 flex items-center justify-center gap-1.5 transition shadow-lg shadow-emerald-950/50 btn-dark-active">
+              <i data-lucide="camera" class="w-4 h-4"></i>
+              <span class="text-xs font-extrabold">กล้อง</span>
             </button>
           </div>
         </div>
 
-        <div id="reader" class="hidden rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-md"></div>
+        <div id="reader" class="hidden rounded-2xl overflow-hidden border border-emerald-500/50 shadow-lg"></div>
 
-        <!-- STATE 1: EXISTING ITEM FOUND IN LOGS (EDIT MODE) -->
-        <div id="existingEditCard" class="hidden bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 rounded-2xl p-4 space-y-3 shadow-sm">
+        <!-- STATE A: EXISTING LOG FOUND (EDIT MODE) -->
+        <div id="existingEditCard" class="hidden bg-gradient-to-br from-amber-950/50 to-orange-950/30 border border-amber-500/40 rounded-2xl p-3.5 space-y-2.5 animate-fade-in">
           <div class="flex justify-between items-center">
-            <span class="text-xs font-bold text-amber-800 flex items-center gap-1">
-              <i data-lucide="edit-3" class="w-4 h-4 text-amber-600"></i> พบรายการที่เคยยิงไว้แล้ว
+            <span class="text-[11px] font-bold text-amber-400 flex items-center gap-1">
+              <i data-lucide="history" class="w-3.5 h-3.5"></i> พบรายการที่เคยยิงไว้แล้ว
             </span>
-            <span id="existingIndexBadge" class="text-[10px] bg-amber-200/80 text-amber-900 px-2 py-0.5 rounded-full font-mono font-bold"></span>
+            <span id="existingIndexBadge" class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono font-bold"></span>
           </div>
           
-          <div>
-            <div id="existingName" class="text-base font-bold text-slate-800 leading-tight"></div>
-            <div id="existingDetails" class="text-xs text-slate-500 mt-1"></div>
+          <div class="app-card-inner rounded-xl p-2.5">
+            <div id="existingName" class="text-xs font-bold text-white leading-snug"></div>
+            <div id="existingDetails" class="text-[10px] text-slate-400 font-mono mt-1"></div>
           </div>
 
-          <div class="flex items-center gap-3 pt-1">
+          <div class="flex items-center gap-2 pt-0.5">
             <div class="flex-1">
-              <label class="block text-[11px] font-bold text-slate-500 mb-1">แก้ไขจำนวน (ชิ้น)</label>
-              <input type="number" id="existingQtyInput" min="1" class="w-full border border-amber-300 rounded-xl p-2 text-center font-bold text-lg bg-white outline-none focus:ring-2 focus:ring-amber-500">
+              <input type="number" id="existingQtyInput" min="1" class="w-full border border-amber-500/50 rounded-xl py-1.5 px-2 text-center font-bold text-base bg-slate-950 text-amber-300 outline-none focus:border-amber-400">
             </div>
-            <div class="flex gap-2 self-end">
-              <button onclick="saveEditExisting()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-md flex items-center gap-1">
-                <i data-lucide="check" class="w-4 h-4"></i> บันทึกแก้ไข
-              </button>
-              <button onclick="deleteExistingFromCard()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold px-3 py-2.5 rounded-xl text-xs transition shadow-md flex items-center gap-1">
-                <i data-lucide="trash-2" class="w-4 h-4"></i> ลบ
-              </button>
-            </div>
+            <button onclick="saveEditExisting()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold px-3.5 py-2 rounded-xl text-xs transition shadow-md btn-dark-active flex items-center gap-1">
+              <i data-lucide="check" class="w-3.5 h-3.5"></i> บันทึก
+            </button>
+            <button onclick="deleteExistingFromCard()" class="bg-rose-500/20 border border-rose-500/40 text-rose-400 hover:bg-rose-500/30 font-bold px-2.5 py-2 rounded-xl text-xs transition btn-dark-active flex items-center">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            </button>
           </div>
         </div>
 
-        <!-- STATE 2: PRODUCT MATCHED IN DB (NEW LOG MODE) -->
-        <div id="productCard" class="hidden bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl p-4 shadow-sm">
-          <div class="flex items-center gap-1.5 text-xs text-emerald-700 font-bold uppercase tracking-wider mb-0.5">
-            <i data-lucide="check-circle-2" class="w-4 h-4"></i> พบรายการสินค้า (ยังไม่เคยยิง)
+        <!-- STATE B: FOUND IN DATABASE (NEW LOG PREPARE) -->
+        <div id="productCard" class="hidden bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-3 space-y-1">
+          <div class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> พบสินค้าในระบบ (ลำดับถัดไป)
           </div>
-          <span id="prodName" class="text-base font-bold text-slate-800 leading-snug block"></span>
+          <span id="prodName" class="text-xs font-bold text-slate-100 leading-tight block"></span>
         </div>
 
-        <!-- STATE 3: NEW UNKNOWN PRODUCT -->
-        <div id="newProductSection" class="hidden bg-slate-100 border border-slate-300 rounded-2xl p-4 space-y-3">
-          <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-            <i data-lucide="alert-circle" class="w-4 h-4 text-slate-500"></i> ไม่พบรหัสนี้ในระบบฐานข้อมูล
+        <!-- STATE C: UNKNOWN PRODUCT -->
+        <div id="newProductSection" class="hidden bg-slate-900 border border-slate-700 rounded-2xl p-3 space-y-2.5">
+          <div class="text-[11px] font-bold text-amber-400 flex items-center gap-1">
+            <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i> ไม่พบรหัสนี้ในฐานข้อมูล
           </div>
-          <input type="text" id="newProdName" placeholder="พิมพ์ชื่อสินค้าใหม่ที่นี่..." 
-            class="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
-          <button onclick="addNewProduct()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5">
-            <i data-lucide="plus" class="w-4 h-4"></i> ลงทะเบียนและยิงสินค้า
+          <input type="text" id="newProdName" placeholder="พิมพ์ชื่อสินค้าเพื่อลงทะเบียน..." 
+            class="w-full border border-slate-700 rounded-xl p-2 text-xs bg-slate-950 text-white outline-none focus:border-emerald-500">
+          <button onclick="addNewProduct()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 rounded-xl text-xs font-bold border border-slate-600 transition flex items-center justify-center gap-1">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> เพิ่มสินค้าและเตรียมยิง
           </button>
         </div>
 
-        <!-- FORM ACTION FOR NEW LOG -->
-        <div id="formSection" class="hidden space-y-4 pt-1">
-          <div class="grid grid-cols-2 gap-3">
+        <!-- NEW ITEM FORM -->
+        <div id="formSection" class="hidden space-y-3 pt-1">
+          <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-xs font-semibold text-slate-500 mb-1">ประเภทรายการ</label>
-              <select id="rtcType" class="w-full border border-slate-200 rounded-xl p-2.5 bg-white font-semibold text-slate-700 focus:ring-2 focus:ring-emerald-500 outline-none">
+              <label class="block text-[10px] font-semibold text-slate-400 mb-1">ประเภท</label>
+              <select id="rtcType" class="w-full border border-slate-700 rounded-xl py-2 px-2.5 bg-slate-950 text-xs font-bold text-slate-200 outline-none focus:border-emerald-500">
                 <option value="RTC 30%">RTC 30%</option>
                 <option value="RTC 50%">RTC 50%</option>
                 <option value="ทำลาย">ทำลาย (Damage)</option>
               </select>
             </div>
             <div>
-              <label class="block text-xs font-semibold text-slate-500 mb-1">จำนวน (ชิ้น)</label>
+              <label class="block text-[10px] font-semibold text-slate-400 mb-1">จำนวน (ชิ้น)</label>
               <input type="number" id="qty" value="1" min="1" 
-                class="w-full border border-slate-200 rounded-xl p-2.5 text-center font-bold text-slate-800 text-lg focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                class="w-full border border-slate-700 rounded-xl py-1.5 px-2 text-center font-bold text-slate-100 text-base bg-slate-950 outline-none focus:border-emerald-500">
             </div>
           </div>
 
-          <button onclick="saveData()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-98 text-white font-bold py-3.5 rounded-2xl shadow-lg btn-glow transition flex items-center justify-center gap-2">
-            <i data-lucide="plus-circle" class="w-5 h-5"></i>
-            <span>บันทึกรายการใหม่</span>
+          <button onclick="saveData()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black py-3 rounded-2xl shadow-lg btn-emerald-glow transition flex items-center justify-center gap-2 text-sm">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span>บันทึกต่อท้ายลำดับ</span>
           </button>
         </div>
+
       </div>
 
-      <!-- CARD 2: RECENT LOGS LIST -->
-      <div class="glass-card rounded-3xl p-5 shadow-xl shadow-slate-200/50 space-y-4">
-        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+      <!-- SECTION 2: LOGS LIST (SEQUENCE 1 TO N) -->
+      <div class="app-card rounded-3xl p-4 shadow-2xl space-y-3">
+        
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
           <div class="flex items-center gap-2">
-            <i data-lucide="list-checks" class="w-5 h-5 text-emerald-600"></i>
-            <h3 class="font-bold text-slate-900 text-base">ประวัติที่ยิงแล้วทั้งหมด</h3>
+            <div class="p-1.5 rounded-xl bg-teal-500/10 text-teal-400">
+              <i data-lucide="list-ordered" class="w-4 h-4"></i>
+            </div>
+            <h3 class="font-bold text-slate-200 text-xs uppercase tracking-wide">รายการตามลำดับที่ยิง</h3>
           </div>
-          <span id="logCount" class="text-xs bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold">0 รายการ</span>
+          <span id="logCount" class="text-[10px] bg-slate-800 text-emerald-400 border border-slate-700 px-2 py-0.5 rounded-full font-mono font-bold">0 รายการ</span>
         </div>
 
-        <button id="btnExport" onclick="exportAndShowSummary()" class="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white py-3.5 rounded-2xl font-bold shadow-lg transition flex items-center justify-center gap-2">
-          <i data-lucide="send" class="w-4 h-4 text-emerald-400"></i>
-          <span>ส่งออก & ดูสรุปรายงาน (คัดลอกด่วน)</span>
+        <button id="btnExport" onclick="exportAndShowSummary()" class="w-full bg-slate-800 hover:bg-slate-750 border border-slate-700/80 active:scale-98 text-slate-100 py-3 rounded-2xl font-extrabold shadow-md transition flex items-center justify-center gap-2 text-xs">
+          <i data-lucide="send" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>ส่งออก & ดูสรุปรายงาน</span>
         </button>
 
-        <div class="overflow-hidden border border-slate-200/80 rounded-2xl bg-white/50">
+        <div class="overflow-hidden border border-slate-800 rounded-2xl bg-slate-950/60">
           <table class="w-full text-xs text-left">
-            <thead class="bg-slate-100/80 text-slate-600 font-bold border-b border-slate-200">
+            <thead class="bg-slate-900/90 text-slate-400 font-bold border-b border-slate-800 text-[10px]">
               <tr>
-                <th class="p-3">สินค้า / ประเภท</th>
-                <th class="p-3 text-center w-20">จำนวน</th>
-                <th class="p-3 text-center w-12">ลบ</th>
+                <th class="p-2.5 text-center w-8">#</th>
+                <th class="p-2.5">สินค้า / ประเภท</th>
+                <th class="p-2.5 text-center w-14">จำนวน</th>
+                <th class="p-2.5 text-center w-8">ลบ</th>
               </tr>
             </thead>
-            <tbody id="historyBody" class="divide-y divide-slate-100">
-              <tr><td colspan="3" class="p-5 text-center text-slate-400 font-medium">ยังไม่มีรายการบันทึก</td></tr>
+            <tbody id="historyBody" class="divide-y divide-slate-800/60">
+              <tr><td colspan="4" class="p-6 text-center text-slate-500 text-xs">ยังไม่มีรายการยิง</td></tr>
             </tbody>
           </table>
         </div>
 
-        <div class="flex justify-end pt-1">
-          <button onclick="clearLogs()" class="text-xs text-rose-500 hover:text-rose-700 font-semibold flex items-center gap-1">
-            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> ล้างประวัติในเครื่อง
+        <div class="flex justify-end pt-0.5">
+          <button onclick="clearLogs()" class="text-[11px] text-rose-400/80 hover:text-rose-400 font-semibold flex items-center gap-1 transition">
+            <i data-lucide="trash-2" class="w-3 h-3"></i> ล้างประวัติทั้งหมด
           </button>
         </div>
+
       </div>
+
     </div>
 
     <!-- SUMMARY PAGE -->
-    <div id="summaryPage" class="hidden space-y-5 transition-all">
-      <div class="glass-card rounded-3xl p-5 shadow-xl shadow-slate-200/50 space-y-5">
-        <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+    <div id="summaryPage" class="hidden space-y-4 transition-all">
+      <div class="app-card rounded-3xl p-4 shadow-2xl space-y-4">
+        
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
           <div>
-            <div class="flex items-center gap-1.5 text-xs text-emerald-600 font-bold uppercase tracking-wider mb-0.5">
-              <i data-lucide="bar-chart-3" class="w-4 h-4"></i> สรุปรายงานยิงสินค้า
+            <div class="flex items-center gap-1 text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-0.5">
+              <i data-lucide="bar-chart-3" class="w-3.5 h-3.5"></i> สรุปรายงานยิงสินค้า
             </div>
-            <h2 id="summaryDate" class="text-sm font-bold text-slate-800"></h2>
+            <h2 id="summaryDate" class="text-xs font-bold text-slate-200"></h2>
           </div>
-          <button onclick="backToMain()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl font-bold transition flex items-center gap-1">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> กลับหน้ายิง
+          <button onclick="backToMain()" class="text-xs bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> ย้อนกลับ
           </button>
         </div>
 
-        <!-- QUICK COPY BUTTONS -->
-        <div class="grid grid-cols-2 gap-3">
-          <button onclick="copyBarcodes()" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-md flex items-center justify-center gap-1.5">
-            <i data-lucide="copy" class="w-4 h-4"></i> คัดลอกบาร์โค้ด
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="copyBarcodes()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 py-3 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5 text-sky-400"></i> คัดลอกบาร์โค้ด
           </button>
-          <button onclick="copyQuantities()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white py-3.5 rounded-2xl text-xs font-bold transition shadow-md flex items-center justify-center gap-1.5">
-            <i data-lucide="layers" class="w-4 h-4"></i> คัดลอกจำนวน
+          <button onclick="copyQuantities()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 py-3 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+            <i data-lucide="layers" class="w-3.5 h-3.5 text-emerald-400"></i> คัดลอกจำนวน
           </button>
         </div>
 
-        <button onclick="copyAllFormatted()" class="w-full bg-slate-900 hover:bg-slate-800 active:scale-98 text-white py-3 rounded-2xl text-xs font-bold transition shadow-md flex items-center justify-center gap-2">
-          <i data-lucide="message-square" class="w-4 h-4 text-emerald-400"></i> คัดลอกสรุปส่งเข้า LINE
+        <button onclick="copyAllFormatted()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 py-3 rounded-2xl text-xs font-extrabold transition shadow-lg shadow-emerald-950/50 flex items-center justify-center gap-1.5">
+          <i data-lucide="message-square" class="w-4 h-4"></i> คัดลอกสรุปส่งเข้า LINE
         </button>
 
-        <!-- SUMMARY TABLE -->
-        <div class="border border-slate-200/80 rounded-2xl overflow-hidden bg-white/80">
+        <div class="border border-slate-800 rounded-2xl overflow-hidden bg-slate-950/80">
           <table class="w-full text-xs text-left">
-            <thead class="bg-slate-900 text-white font-bold">
+            <thead class="bg-slate-900 text-slate-400 font-bold border-b border-slate-800 text-[10px]">
               <tr>
-                <th class="p-3">บาร์โค้ด</th>
-                <th class="p-3">สินค้า / ประเภท</th>
-                <th class="p-3 text-center">จำนวน</th>
+                <th class="p-2.5 text-center w-8">#</th>
+                <th class="p-2.5">บาร์โค้ด</th>
+                <th class="p-2.5">สินค้า / ประเภท</th>
+                <th class="p-2.5 text-center">จำนวน</th>
               </tr>
             </thead>
-            <tbody id="summaryTableBody" class="divide-y divide-slate-100"></tbody>
+            <tbody id="summaryTableBody" class="divide-y divide-slate-800/80"></tbody>
           </table>
         </div>
+
       </div>
     </div>
 
@@ -291,7 +329,7 @@
       let query = document.getElementById("barcode").value.trim().toLowerCase();
       if (!query) return resetForm();
 
-      // 1. Check if item ALREADY EXISTS in active logs
+      // 1. SEARCH IN EXISTING LOGS (Sequence Preservation)
       let existingLogIndex = logs.findIndex(item => 
         item.barcode.toLowerCase() === query || item.name.toLowerCase().includes(query)
       );
@@ -301,7 +339,7 @@
         activeFoundLogId = existingLog.id;
 
         document.getElementById("existingEditCard").classList.remove("hidden");
-        document.getElementById("existingIndexBadge").innerText = `รายการที่ ${logs.length - existingLogIndex} จาก ${logs.length}`;
+        document.getElementById("existingIndexBadge").innerText = `รายการที่ ${existingLogIndex + 1} จาก ${logs.length}`;
         document.getElementById("existingName").innerText = existingLog.name;
         document.getElementById("existingDetails").innerText = `บาร์โค้ด: ${existingLog.barcode} | ประเภท: ${existingLog.type}`;
         document.getElementById("existingQtyInput").value = existingLog.qty;
@@ -312,7 +350,7 @@
         return;
       }
 
-      // 2. If not found in logs, check master BAKERY_DB for new entry
+      // 2. SEARCH IN MASTER DATABASE FOR NEW ENTRY
       document.getElementById("existingEditCard").classList.add("hidden");
       activeFoundLogId = null;
 
@@ -347,7 +385,7 @@
 
     function deleteExistingFromCard() {
       if (!activeFoundLogId) return;
-      if (confirm("ต้องการลบรายการนี้ออกจากประวัติใช่หรือไม่?")) {
+      if (confirm("ต้องการลบรายการนี้ใช่หรือไม่?")) {
         logs = logs.filter(l => l.id !== activeFoundLogId);
         localStorage.setItem("rtc_logs", JSON.stringify(logs));
         renderHistory();
@@ -359,7 +397,7 @@
       let readerDiv = document.getElementById("reader");
       if (readerDiv.classList.contains("hidden")) {
         readerDiv.classList.remove("hidden");
-        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 150} });
+        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 240, height: 140} });
         html5QrcodeScanner.render(onScanSuccess);
       } else {
         stopCamera();
@@ -398,7 +436,8 @@
 
       if (!barcode || !qty || qty < 1) return alert("กรุณาตรวจสอบข้อมูล");
 
-      logs.unshift({
+      // APPEND TO END OF ARRAY (Sequential First-In First-Out Order)
+      logs.push({
         id: Date.now(),
         date: dateVal,
         time: new Date().toLocaleTimeString("th-TH", { hour: '2-digit', minute: '2-digit' }),
@@ -428,27 +467,30 @@
       document.getElementById("logCount").innerText = `${logs.length} รายการ`;
 
       if (logs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="p-5 text-center text-slate-400 font-medium">ยังไม่มีรายการบันทึก</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-500 text-xs">ยังไม่มีรายการยิง</td></tr>`;
         return;
       }
 
       let html = "";
-      logs.forEach((item) => {
-        let typeBadge = item.type === 'ทำลาย' ? 'bg-rose-100 text-rose-700 border-rose-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      logs.forEach((item, index) => {
+        let typeBadge = item.type === 'ทำลาย' 
+          ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' 
+          : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
 
         html += `
-          <tr class="hover:bg-slate-50/80 transition">
-            <td class="p-3">
-              <div class="font-bold text-slate-800 leading-tight text-xs">${item.name}</div>
-              <div class="text-[10px] text-slate-400 mt-0.5 font-mono">${item.date} (${item.time}) | ${item.barcode}</div>
-              <span class="inline-block mt-1 text-[9px] px-2 py-0.5 rounded-full font-bold border ${typeBadge}">${item.type}</span>
+          <tr class="hover:bg-slate-900/60 transition">
+            <td class="p-2.5 text-center font-mono font-bold text-slate-400 text-[11px]">${index + 1}</td>
+            <td class="p-2.5">
+              <div class="font-bold text-slate-100 text-xs leading-snug">${item.name}</div>
+              <div class="text-[10px] text-slate-400 font-mono mt-0.5">${item.barcode}</div>
+              <span class="inline-block mt-1 text-[9px] px-2 py-0.2 rounded-full font-bold border ${typeBadge}">${item.type}</span>
             </td>
-            <td class="p-3 text-center">
+            <td class="p-2.5 text-center">
               <input type="number" min="1" value="${item.qty}" onchange="updateQty(${item.id}, this.value)" 
-                class="w-12 border border-slate-200 rounded-lg p-1 text-center font-bold text-slate-800 focus:ring-1 focus:ring-emerald-500 outline-none bg-white">
+                class="w-11 border border-slate-700/80 rounded-lg py-1 text-center font-bold text-slate-100 bg-slate-950 outline-none focus:border-emerald-500 text-xs">
             </td>
-            <td class="p-3 text-center">
-              <button onclick="deleteLog(${item.id})" class="text-rose-400 hover:text-rose-600 p-1 font-bold transition">✕</button>
+            <td class="p-2.5 text-center">
+              <button onclick="deleteLog(${item.id})" class="text-slate-500 hover:text-rose-400 font-bold transition text-xs p-1">✕</button>
             </td>
           </tr>
         `;
@@ -477,7 +519,7 @@
     }
 
     function clearLogs() {
-      if (confirm("ล้างประวัติที่บันทึกไว้ในเครื่องใช่หรือไม่?")) {
+      if (confirm("ต้องการล้างประวัติที่ยิงทั้งหมดในเครื่องใช่หรือไม่?")) {
         logs = [];
         localStorage.removeItem("rtc_logs");
         renderHistory();
@@ -488,7 +530,7 @@
       if (logs.length === 0) return alert("ยังไม่มีรายการบันทึก");
 
       let btn = document.getElementById("btnExport");
-      btn.innerText = "⏳ กำลังบันทึกข้อมูลเข้า Google Sheet...";
+      btn.innerText = "⏳ กำลังส่งข้อมูลไปยัง Google Sheet...";
       btn.disabled = true;
 
       try {
@@ -499,7 +541,7 @@
       } catch (e) {
         console.error("Cloud save failed, showing summary anyway", e);
       } finally {
-        btn.innerHTML = `<i data-lucide="send" class="w-4 h-4 text-emerald-400"></i><span>ส่งออก & ดูสรุปรายงาน (คัดลอกด่วน)</span>`;
+        btn.innerHTML = `<i data-lucide="send" class="w-3.5 h-3.5 text-emerald-400"></i><span>ส่งออก & ดูสรุปรายงาน</span>`;
         btn.disabled = false;
         lucide.createIcons();
       }
@@ -515,15 +557,16 @@
 
       let tbody = document.getElementById("summaryTableBody");
       let html = "";
-      logs.forEach(item => {
+      logs.forEach((item, index) => {
         html += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3 font-mono text-slate-700 font-bold text-xs">${item.barcode}</td>
-            <td class="p-3">
-              <div class="font-bold text-slate-800 text-xs">${item.name}</div>
+          <tr class="hover:bg-slate-900/60 transition">
+            <td class="p-2.5 text-center font-mono font-bold text-slate-400 text-[11px]">${index + 1}</td>
+            <td class="p-2.5 font-mono text-slate-300 font-bold text-xs">${item.barcode}</td>
+            <td class="p-2.5">
+              <div class="font-bold text-slate-100 text-xs">${item.name}</div>
               <div class="text-[10px] text-slate-400">${item.type}</div>
             </td>
-            <td class="p-3 text-center font-bold text-slate-900 text-xs">${item.qty}</td>
+            <td class="p-2.5 text-center font-bold text-emerald-400 text-xs">${item.qty}</td>
           </tr>
         `;
       });
@@ -539,13 +582,13 @@
     function copyBarcodes() {
       let text = logs.map(item => item.barcode).join("\n");
       navigator.clipboard.writeText(text);
-      alert("📋 คัดลอกรายการบาร์โค้ดทั้งหมดเรียบร้อยแล้ว!");
+      alert("📋 คัดลอกรายการบาร์โค้ดตามลำดับเรียบร้อยแล้ว!");
     }
 
     function copyQuantities() {
       let text = logs.map(item => item.qty).join("\n");
       navigator.clipboard.writeText(text);
-      alert("📋 คัดลอกรายการจำนวนทั้งหมดเรียบร้อยแล้ว!");
+      alert("📋 คัดลอกรายการจำนวนตามลำดับเรียบร้อยแล้ว!");
     }
 
     function copyAllFormatted() {
