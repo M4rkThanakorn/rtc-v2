@@ -14,126 +14,152 @@
   <header class="bg-emerald-600 text-white py-4 px-6 shadow-md mb-6 sticky top-0 z-50">
     <div class="max-w-xl mx-auto flex justify-between items-center">
       <h1 class="text-xl font-bold flex items-center gap-2">🥐 Turtle RTC Manager</h1>
-      <span class="text-xs bg-emerald-700 px-2.5 py-1 rounded-full font-medium">v6.0 Auto-Create Sheet</span>
+      <span class="text-xs bg-emerald-700 px-2.5 py-1 rounded-full font-medium">v7.0 Quick Copy</span>
     </div>
   </header>
 
   <main class="max-w-xl mx-auto px-4 space-y-6">
 
-    <!-- Card 1: ฟอร์มสแกน & บันทึก -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
-      <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center justify-between">
-        <span>📍 บันทึกรายการใหม่</span>
-        <input type="date" id="recordDate" class="text-sm font-normal border rounded-lg px-2 py-1 bg-slate-50 focus:ring-2 focus:ring-emerald-500 outline-none">
-      </h2>
+    <!-- หน้าหลัก: สแกน & บันทึก -->
+    <div id="mainPage" class="space-y-6">
+      <!-- Card 1: ฟอร์มสแกน -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <h2 class="text-lg font-bold text-slate-900 border-b pb-2 flex items-center justify-between">
+          <span>📍 บันทึกรายการใหม่</span>
+          <input type="date" id="recordDate" class="text-sm font-normal border rounded-lg px-2 py-1 bg-slate-50 focus:ring-2 focus:ring-emerald-500 outline-none">
+        </h2>
 
-      <div>
-        <label class="block text-sm font-medium text-slate-700 mb-1">สแกน หรือ พิมพ์รหัสบาร์โค้ด</label>
-        <div class="flex gap-2">
-          <input type="text" id="barcode" placeholder="ยิงบาร์โค้ดที่นี่..." oninput="searchProduct()" 
-            class="w-full text-lg border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
-          <button onclick="toggleCamera()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-medium shrink-0 flex items-center gap-1 transition">
-            📷 กล้อง
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">สแกน หรือ พิมพ์รหัสบาร์โค้ด</label>
+          <div class="flex gap-2">
+            <input type="text" id="barcode" placeholder="ยิงบาร์โค้ดที่นี่..." oninput="searchProduct()" 
+              class="w-full text-lg border border-slate-300 rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none">
+            <button onclick="toggleCamera()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-medium shrink-0 flex items-center gap-1 transition">
+              📷 กล้อง
+            </button>
+          </div>
+        </div>
+
+        <div id="reader" class="hidden rounded-xl overflow-hidden border border-slate-300"></div>
+
+        <div id="productCard" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3.5">
+          <span class="text-xs text-emerald-600 font-semibold uppercase tracking-wider block">สินค้าที่พบ</span>
+          <span id="prodName" class="text-base font-bold text-emerald-900 leading-snug"></span>
+        </div>
+
+        <div id="newProductSection" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2">
+          <div class="text-sm font-bold text-amber-800">⚠️ ไม่พบรหัสนี้ในฐานข้อมูล</div>
+          <input type="text" id="newProdName" placeholder="ระบุชื่อสินค้าใหม่" 
+            class="w-full border border-amber-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+          <button onclick="addNewProduct()" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-sm font-bold shadow-sm transition">
+            ➕ บันทึกสินค้าใหม่
+          </button>
+        </div>
+
+        <div id="formSection" class="hidden space-y-3 pt-2">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">ประเภท</label>
+              <select id="rtcType" class="w-full border border-slate-300 rounded-lg p-2.5 bg-slate-50 font-medium focus:ring-2 focus:ring-emerald-500 outline-none">
+                <option value="RTC 30%">RTC 30%</option>
+                <option value="RTC 50%">RTC 50%</option>
+                <option value="ทำลาย">ทำลาย (Damage)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">จำนวน (ชิ้น)</label>
+              <input type="number" id="qty" value="1" min="1" 
+                class="w-full border border-slate-300 rounded-lg p-2.5 text-center font-bold text-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+          </div>
+
+          <button onclick="saveData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition">
+            💾 บันทึกรายการลงตาราง
           </button>
         </div>
       </div>
 
-      <div id="reader" class="hidden rounded-xl overflow-hidden border border-slate-300"></div>
-
-      <div id="productCard" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3.5">
-        <span class="text-xs text-emerald-600 font-semibold uppercase tracking-wider block">สินค้าที่พบ</span>
-        <span id="prodName" class="text-base font-bold text-emerald-900 leading-snug"></span>
-      </div>
-
-      <div id="newProductSection" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3.5 space-y-2">
-        <div class="text-sm font-bold text-amber-800">⚠️ ไม่พบรหัสนี้ในฐานข้อมูล</div>
-        <input type="text" id="newProdName" placeholder="ระบุชื่อสินค้าใหม่" 
-          class="w-full border border-amber-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
-        <button onclick="addNewProduct()" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg text-sm font-bold shadow-sm transition">
-          ➕ บันทึกสินค้าใหม่
-        </button>
-      </div>
-
-      <div id="formSection" class="hidden space-y-3 pt-2">
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">ประเภท</label>
-            <select id="rtcType" class="w-full border border-slate-300 rounded-lg p-2.5 bg-slate-50 font-medium focus:ring-2 focus:ring-emerald-500 outline-none">
-              <option value="RTC 30%">RTC 30%</option>
-              <option value="RTC 50%">RTC 50%</option>
-              <option value="ทำลาย">ทำลาย (Damage)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">จำนวน (ชิ้น)</label>
-            <input type="number" id="qty" value="1" min="1" 
-              class="w-full border border-slate-300 rounded-lg p-2.5 text-center font-bold text-lg focus:ring-2 focus:ring-emerald-500 outline-none">
-          </div>
+      <!-- Card 2: รายการยิงแล้ว -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex justify-between items-center border-b pb-2">
+          <h3 class="font-bold text-slate-900 text-base">📋 รายการที่ยิงแล้ว</h3>
+          <span id="logCount" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-semibold">0 รายการ</span>
         </div>
 
-        <button onclick="saveData()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition">
-          💾 บันทึกรายการลงตาราง
+        <button id="btnExport" onclick="exportAndShowSummary()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-3.5 rounded-xl font-bold shadow-md transition flex items-center justify-center gap-2">
+          <span>🚀 ส่งออก & ดูสรุปรายงาน (คัดลอกบาร์โค้ด)</span>
         </button>
+
+        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+              <tr>
+                <th class="p-2.5">สินค้า / ประเภท</th>
+                <th class="p-2.5 text-center w-20">จำนวน</th>
+                <th class="p-2.5 text-center w-12">ลบ</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody" class="divide-y divide-slate-100">
+              <tr><td colspan="3" class="p-4 text-center text-slate-400">ยังไม่มีรายการบันทึก</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex justify-end pt-1">
+          <button onclick="clearLogs()" class="text-xs text-rose-500 hover:text-rose-700 font-semibold">
+            🗑️ ล้างประวัติในเครื่อง
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Card 2: รายการยิงแล้ว + สร้าง Google Sheet ใหม่ -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-slate-900 text-base">📋 รายการที่ยิงแล้ว</h3>
-        <span id="logCount" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-semibold">0 รายการ</span>
-      </div>
-
-      <!-- ปุ่มกดสร้างไฟล์ Sheet ใหม่ -->
-      <button id="btnExport" onclick="sendToGoogleSheet()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white py-3.5 rounded-xl font-bold shadow-md transition flex items-center justify-center gap-2">
-        <span>🚀 สร้างไฟล์ Google Sheet ใหม่ (ตั้งชื่ออัตโนมัติ)</span>
-      </button>
-
-      <!-- โซนแสดงลิงก์เมื่อสร้างไฟล์สำเร็จ -->
-      <div id="createdSheetZone" class="hidden bg-emerald-50 border border-emerald-300 rounded-xl p-4 space-y-3">
-        <div class="text-xs font-bold text-emerald-800 flex items-center gap-1">
-          ✅ สร้างไฟล์สำเร็จ: <span id="createdFileName" class="underline"></span>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="openCreatedSheet()" class="bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm">
-            <span>🟢 เปิดดู Google Sheet</span>
-          </button>
-          <button onclick="copyCreatedLink()" class="bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-sm">
-            <span>📋 คัดลอกลิงก์แชร์</span>
+    <!-- หน้าสรุปรายงาน (Summary Page) -->
+    <div id="summaryPage" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">📊 สรุปรายงานการยิงสินค้า</h2>
+            <p id="summaryDate" class="text-xs text-slate-500"></p>
+          </div>
+          <button onclick="backToMain()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-semibold transition">
+            ⬅️ กลับหน้าสแกน
           </button>
         </div>
-      </div>
 
-      <!-- ตารางแสดงรายการ -->
-      <div class="overflow-x-auto border border-slate-200 rounded-xl">
-        <table class="w-full text-xs text-left">
-          <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
-            <tr>
-              <th class="p-2.5">สินค้า / ประเภท</th>
-              <th class="p-2.5 text-center w-20">จำนวน</th>
-              <th class="p-2.5 text-center w-12">ลบ</th>
-            </tr>
-          </thead>
-          <tbody id="historyBody" class="divide-y divide-slate-100">
-            <tr><td colspan="3" class="p-4 text-center text-slate-400">ยังไม่มีรายการบันทึก</td></tr>
-          </tbody>
-        </table>
-      </div>
+        <!-- ปุ่มคัดลอกข้อมูลแบบด่วน -->
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="copyBarcodes()" class="bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1">
+            📋 คัดลอกบาร์โค้ดทั้งหมด
+          </button>
+          <button onclick="copyQuantities()" class="bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1">
+            📋 คัดลอกจำนวนทั้งหมด
+          </button>
+        </div>
 
-      <div class="flex justify-end pt-1">
-        <button onclick="clearLogs()" class="text-xs text-rose-500 hover:text-rose-700 font-semibold">
-          🗑️ ล้างประวัติในเครื่อง
+        <button onclick="copyAllFormatted()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-xl text-xs font-bold transition shadow-sm">
+          📝 คัดลอกสรุปรายการทั้งหมด (ส่งเข้า LINE)
         </button>
+
+        <!-- ตารางสรุปรายการ -->
+        <div class="border border-slate-200 rounded-xl overflow-hidden mt-4">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+              <tr>
+                <th class="p-2.5">บาร์โค้ด</th>
+                <th class="p-2.5">ชื่อสินค้า / ประเภท</th>
+                <th class="p-2.5 text-center">จำนวน</th>
+              </tr>
+            </thead>
+            <tbody id="summaryTableBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
   </main>
 
   <script>
-    // 🔗 ลิงก์ Web App URL อัปเดตล่าสุด
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4Vh7NNHkWSUICE8xjFn5bSYaIFAqo-mxNXVxuAxeqQcFRnvGTh_l-_V7AE8lL02fnIA/exec";
-    
-    let latestSheetUrl = "";
 
     document.getElementById("recordDate").value = new Date().toISOString().split('T')[0];
 
@@ -229,7 +255,7 @@
       document.getElementById("barcode").value = "";
       document.getElementById("productCard").classList.add("hidden");
       document.getElementById("formSection").classList.add("hidden");
-      document.getElementById("newProductSection").classList.remove("hidden");
+      document.getElementById("newProductSection").classList.add("hidden");
       document.getElementById("qty").value = "1";
     }
 
@@ -293,43 +319,80 @@
       }
     }
 
-    async function sendToGoogleSheet() {
-      if (logs.length === 0) return alert("ยังไม่มีข้อมูลสำหรับส่งออก");
+    // ฟังก์ชันส่งข้อมูลเข้า Sheet + เปิดหน้าสรุปรายงาน
+    async function exportAndShowSummary() {
+      if (logs.length === 0) return alert("ยังไม่มีรายการบันทึก");
 
       let btn = document.getElementById("btnExport");
-      btn.innerText = "⏳ กำลังสร้างไฟล์ Google Sheet...";
+      btn.innerText = "⏳ กำลังบันทึกข้อมูลเข้า Google Sheet...";
       btn.disabled = true;
 
       try {
-        let res = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
           method: "POST",
           body: JSON.stringify({ action: "saveLog", logs: logs })
         });
-        
-        let result = await res.json();
-        latestSheetUrl = result.sheetUrl;
-
-        document.getElementById("createdFileName").innerText = result.fileName;
-        document.getElementById("createdSheetZone").classList.remove("hidden");
-
-        alert(`สร้างไฟล์ ${result.fileName} สำเร็จแล้ว!`);
       } catch (e) {
-        alert("เกิดข้อผิดพลาดในการสร้างไฟล์");
+        console.error("Cloud save failed, showing summary anyway", e);
       } finally {
-        btn.innerText = "🚀 สร้างไฟล์ Google Sheet ใหม่ (ตั้งชื่ออัตโนมัติ)";
+        btn.innerText = "🚀 ส่งออก & ดูสรุปรายงาน (คัดลอกบาร์โค้ด)";
         btn.disabled = false;
       }
+
+      renderSummaryPage();
     }
 
-    function openCreatedSheet() {
-      if (latestSheetUrl) window.open(latestSheetUrl, '_blank');
+    function renderSummaryPage() {
+      document.getElementById("mainPage").classList.add("hidden");
+      document.getElementById("summaryPage").classList.remove("hidden");
+
+      document.getElementById("summaryDate").innerText = `วันที่บันทึก: ${document.getElementById("recordDate").value}`;
+
+      let tbody = document.getElementById("summaryTableBody");
+      let html = "";
+      logs.forEach(item => {
+        html += `
+          <tr>
+            <td class="p-2.5 font-mono text-slate-600 font-bold">${item.barcode}</td>
+            <td class="p-2.5">
+              <div class="font-bold text-slate-800">${item.name}</div>
+              <div class="text-[10px] text-slate-400">${item.type}</div>
+            </td>
+            <td class="p-2.5 text-center font-bold text-slate-900">${item.qty}</td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
     }
 
-    function copyCreatedLink() {
-      if (latestSheetUrl) {
-        navigator.clipboard.writeText(latestSheetUrl);
-        alert("คัดลอกลิงก์ Google Sheet ใหม่เรียบร้อยแล้ว!");
-      }
+    function backToMain() {
+      document.getElementById("summaryPage").classList.add("hidden");
+      document.getElementById("mainPage").classList.remove("hidden");
+    }
+
+    // ฟังก์ชันคัดลอกเฉพาะบาร์โค้ด
+    function copyBarcodes() {
+      let text = logs.map(item => item.barcode).join("\n");
+      navigator.clipboard.writeText(text);
+      alert("📋 คัดลอกรายการบาร์โค้ดทั้งหมดเรียบร้อยแล้ว!");
+    }
+
+    // ฟังก์ชันคัดลอกเฉพาะจำนวน
+    function copyQuantities() {
+      let text = logs.map(item => item.qty).join("\n");
+      navigator.clipboard.writeText(text);
+      alert("📋 คัดลอกรายการจำนวนทั้งหมดเรียบร้อยแล้ว!");
+    }
+
+    // ฟังก์ชันคัดลอกสรุปรายการทั้งหมดสำหรับส่งเข้า LINE
+    function copyAllFormatted() {
+      let dateVal = document.getElementById("recordDate").value;
+      let text = `📦 สรุปรายการ RTC/ทำลาย (${dateVal})\n------------------------------\n`;
+      logs.forEach((item, index) => {
+        text += `${index + 1}. [${item.barcode}] ${item.name} (${item.type}) = ${item.qty} ชิ้น\n`;
+      });
+      navigator.clipboard.writeText(text);
+      alert("📝 คัดลอกสรุปรายงานทั้งหมดเรียบร้อยแล้ว!");
     }
   </script>
 </body>
